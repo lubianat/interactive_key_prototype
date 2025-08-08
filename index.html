@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chave Interativa</title>
+    <style>
+        :root {
+            --primary: #2a7a5e;
+            --bg: #f9f9f9;
+            --card-bg: #fff;
+            --tag-bg: #e0f0ea;
+            --tag-text: #2a7a5e;
+            --border-radius: 12px;
+            --muted: #666;
+            --border: #ddd;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        /* Mantém as colunas com rolagem independentes */
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+            background: var(--bg);
+            color: #333;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+            /* ocupa toda a viewport */
+            overflow: hidden;
+            /* impede que a página inteira role */
+        }
+
+        /* ============= Lado esquerdo (painel) ============= */
+        aside {
+            background: #fff;
+            border-right: 1px solid var(--border);
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            /* título, toc, filtros (rola), rodapé */
+            gap: 0.75rem;
+            padding: 0.75rem;
+            height: 100vh;
+            /* garante altura fixa */
+            position: sticky;
+            /* fixa no topo mesmo se o main rolar */
+            top: 0;
+            overflow: hidden;
+            /* só o contêiner interno rola */
+        }
+
+        #appTitle {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        small.meta {
+            color: var(--muted);
+        }
+
+        /* Navegação interna */
+        #toc {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        #toc a {
+            text-decoration: none;
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--border-radius);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        #toc a:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* Área scrollável de filtros */
+        #filters {
+            overflow: auto;
+            padding-right: 0.25rem;
+        }
+
+        /* Cabeçalhos dos grupos de filtros */
+        #filters h3 {
+            margin: 1rem 0 0.25rem;
+            font-size: 0.95rem;
+            color: var(--primary);
+        }
+
+        fieldset {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.5rem 0.6rem;
+            margin: 0.4rem 0;
+        }
+
+        legend {
+            padding: 0 0.25rem;
+            font-weight: 600;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            padding: 0.15rem 0;
+        }
+
+        .count {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .aside-footer {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        button,
+        .btn {
+            padding: 0.55rem 0.7rem;
+            border: 1px solid var(--primary);
+            border-radius: var(--border-radius);
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.secondary {
+            background: #fff;
+            color: var(--primary);
+        }
+
+        /* Chips de filtros ativos */
+        #activeFilters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .chip {
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            border-radius: 999px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .chip button {
+            border: none;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        /* ============= Cartões à direita ============= */
+        main {
+            height: 100vh;
+            overflow: auto;
+            padding: 1rem;
+        }
+
+        /* Barra de ações acima dos cards */
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.6rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 0.4rem 0.6rem;
+        }
+
+        .search input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+
+        .tag {
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--border-radius);
+            font-size: 0.75rem;
+        }
+
+        /* Estado vazio */
+        .empty {
+            text-align: center;
+            color: var(--muted);
+            padding: 2rem 1rem;
+        }
+
+        /* Preferência de cor do sistema */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f1115;
+                --card-bg: #151922;
+                --tag-bg: #11392e;
+                --tag-text: #b6f0da;
+                --border: #222933;
+            }
+
+            body {
+                color: #e7eaf0;
+            }
+
+            aside {
+                background: #0f1218;
+                border-right-color: var(--border);
+            }
+
+            .search {
+                background: #0f1218;
+                border-color: var(--border);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div>
+            <h2 id="appTitle"></h2>
+            <small class="meta" id="meta"></small>
+        </div>
+
+        <!-- Navegação por partes da planta -->
+        <nav id="toc" aria-label="Ir para seção de filtros"></nav>
+
+        <!-- Área scrollável de filtros -->
+        <div id="filters" tabindex="0"></div>
+
+        <div class="aside-footer">
+            <button id="clearBtn" title="Limpar todos os filtros">Limpar filtros</button>
+            <button id="collapseAllBtn" class="secondary" title="Recolher/expandir grupos">Alternar grupos</button>
+        </div>
+    </aside>
+
+    <main>
+        <div class="toolbar">
+            <div class="search" role="search">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" fill="none"
+                        stroke="currentColor" stroke-width="2" />
+                </svg>
+                <input id="search" type="search" placeholder="Buscar família (ex.: Fabaceae)" autocomplete="off" />
+            </div>
+            <div id="activeFilters"></div>
+        </div>
+
+        <section id="cards" class="grid" aria-live="polite"></section>
+        <div id="empty" class="empty" hidden>Nenhum resultado com esses filtros.</div>
+    </main>
+
+    <!-- ===== Especificações da aplicação ===== -->
+    <script id="specs" type="application/json">
+    {
+      "title": "Prototype - Open Interactive Key",
+      "version": "1.3",
+      "author": "Tiago Lubiana"
+    }
+  </script>
+
+    <!-- ===== Banco de dados ===== -->
+    <script id="database" type="application/json">
+        [
+        {
+          "name": "Rubiaceae",
+          "wikidata": "Q156569",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Coffea_arabica_flowers.jpg",
+          "traits": {
+            "Leaf": { "Arrangement": "Opposite", "Type": "Simple" },
+            "Flower": { "Symmetry": "Actinomorphic", "Ovary position": "Inferior" }
+          }
+        },
+        {
+          "name": "Melastomataceae",
+          "wikidata": "Q648380",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/Tibouchina_semidecandra_flower.jpg",
+          "traits": {
+            "Leaf": { "Arrangement": "Opposite", "Type": "Simple", "Venation": "Acrodromous" },
+            "Flower": { "Symmetry": "Actinomorphic", "Stamen number": "Numerous" }
+          }
+        },
+        {
+          "name": "Fabaceae",
+          "wikidata": "Q44448",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Delonix_regia_flower.jpg",
+          "traits": {
+            "Leaf": { "Arrangement": "Alternate", "Type": "Compound" },
+            "Flower": { "Symmetry": "Zygomorphic", "Ovary position": "Superior" }
+          }
+        },
+        {
+          "name": "Myrtaceae",
+          "wikidata": "Q156563",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/4/42/Eucalyptus_globulus_flower.jpg",
+          "traits": {
+            "Leaf": { "Arrangement": "Opposite", "Type": "Simple", "Aroma": "Aromatic glands" },
+            "Flower": { "Symmetry": "Actinomorphic", "Stamen number": "Many" }
+          }
+        },
+        {
+          "name": "Poaceae",
+          "wikidata": "Q43238",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Bamboo_forest_in_Japan.jpg",
+          "traits": {
+            "Leaf": { "Arrangement": "Alternate", "Type": "Simple", "Sheath": "Open" },
+            "Stem": { "Structure": "Hollow", "Nodes": "Prominent" },
+            "Flower": { "Inflorescence": "Spikelet" }
+          }
+        }
+      ]
+  </script>
+
+    <!-- ===== Script principal ===== -->
+    <script>
+        async function init() {
+            const UNKNOWN_VALUE = "__unknown__";
+            const UNKNOWN_LABEL = "Outro/Não registrado";
+
+            const specs = JSON.parse(document.getElementById("specs").textContent);
+            document.getElementById("appTitle").textContent = specs.title;
+            document.getElementById("meta").textContent = `v${specs.version}`;
+
+            const data = JSON.parse(document.getElementById("database").textContent);
+
+            const cardsContainer = document.getElementById("cards");
+            const emptyEl = document.getElementById("empty");
+            const clearBtn = document.getElementById("clearBtn");
+            const collapseAllBtn = document.getElementById("collapseAllBtn");
+            const searchInput = document.getElementById("search");
+            const activeFiltersWrap = document.getElementById("activeFilters");
+
+            // Cache to avoid duplicate network calls
+            const wikidataImageCache = new Map();
+
+            async function getWikidataImageURL(qid, width = 640) {
+                if (!qid) return null;
+                if (wikidataImageCache.has(qid)) return wikidataImageCache.get(qid);
+
+                // 1) Fetch entity JSON
+                const url = `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`;
+                const resp = await fetch(url);
+                if (!resp.ok) return null;
+                const json = await resp.json();
+
+                const entity = json.entities?.[qid];
+                const p18 = entity?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
+                if (!p18) {
+                    wikidataImageCache.set(qid, null);
+                    return null;
+                }
+
+                // 2) Convert filename (with spaces) to a live image via Commons
+                const filename = encodeURIComponent(p18); // e.g., "Eucalyptus_globulus_fleurs.jpg"
+                const filePath = `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}?width=${width}`;
+
+                wikidataImageCache.set(qid, filePath);
+                return filePath;
+            }
+
+            // Resolve images for all items in parallel; keep any existing fallback image if no P18
+            async function hydrateImagesFromWikidata(items) {
+                await Promise.all(items.map(async (it) => {
+                    const url = await getWikidataImageURL(it.wikidata);
+                    if (url) it.image = url;
+                }));
+            }
+
+            // =========================
+            // Construir mapa de traços
+            // =========================
+            const traitMap = {};
+            data.forEach((item) => {
+                Object.entries(item.traits).forEach(([cls, descriptors]) => {
+                    if (!traitMap[cls]) traitMap[cls] = {};
+                    Object.entries(descriptors).forEach(([desc, qual]) => {
+                        if (!traitMap[cls][desc]) traitMap[cls][desc] = new Set();
+                        traitMap[cls][desc].add(qual);
+                    });
+                });
+            });
+
+            // Estado dos filtros selecionados
+            let selectedFilters = {};
+
+            // Guardamos referências para atualizar contagens rapidamente
+            const radioInfoList = [];
+
+            // Persistência simples via URL hash
+            function saveStateToHash() {
+                const state = { selectedFilters, q: searchInput.value };
+                location.hash = encodeURIComponent(JSON.stringify(state));
+            }
+            function loadStateFromHash() {
+                try {
+                    if (location.hash.length > 1) {
+                        const state = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+                        selectedFilters = state.selectedFilters || {};
+                        const q = state.q || '';
+                        searchInput.value = q;
+                    }
+                } catch (_) { }
+            }
+
+            // =========================
+            // Construir UI de filtros
+            // =========================
+            function buildFilters() {
+                const container = document.getElementById("filters");
+                const toc = document.getElementById("toc");
+
+                Object.keys(traitMap)
+                    .sort()
+                    .forEach((cls) => {
+                        // âncora de navegação
+                        const anchorLink = document.createElement("a");
+                        anchorLink.href = `#sec-${cls}`;
+                        anchorLink.textContent = cls;
+                        toc.appendChild(anchorLink);
+
+                        // seção dos filtros da classe (colapsável)
+                        const section = document.createElement("section");
+                        section.id = `sec-${cls}`;
+
+                        const header = document.createElement("h3");
+                        header.textContent = cls.toUpperCase();
+                        header.style.cursor = 'pointer';
+                        header.title = 'Clique para recolher/expandir';
+                        section.appendChild(header);
+
+                        const inner = document.createElement('div');
+                        section.appendChild(inner);
+
+                        header.addEventListener('click', () => {
+                            inner.hidden = !inner.hidden;
+                        });
+
+                        Object.keys(traitMap[cls])
+                            .sort()
+                            .forEach((desc) => {
+                                const fieldset = document.createElement("fieldset");
+                                fieldset.className = "radio-group";
+
+                                const legend = document.createElement("legend");
+                                legend.textContent = desc;
+                                fieldset.appendChild(legend);
+
+                                const groupName = `${cls}__${desc}`; // único por descritor
+
+                                function makeRadio(value, label, { showCount = true } = {}) {
+                                    const id = `${groupName}-${value || "all"}`;
+                                    const wrapper = document.createElement("label");
+                                    wrapper.setAttribute('for', id);
+
+                                    const input = document.createElement("input");
+                                    input.id = id;
+                                    input.type = "radio";
+                                    input.name = groupName;
+                                    input.value = value;
+                                    if (value === "") input.checked = true; // "Todos" padrão
+
+                                    input.addEventListener("change", (e) => {
+                                        const val = e.target.value;
+                                        if (val) {
+                                            if (!selectedFilters[cls]) selectedFilters[cls] = {};
+                                            selectedFilters[cls][desc] = val;
+                                        } else {
+                                            if (selectedFilters[cls]) {
+                                                delete selectedFilters[cls][desc];
+                                                if (Object.keys(selectedFilters[cls]).length === 0) {
+                                                    delete selectedFilters[cls];
+                                                }
+                                            }
+                                        }
+                                        saveStateToHash();
+                                        render();
+                                    });
+
+                                    const labelText = document.createTextNode(` ${label} `);
+
+                                    wrapper.appendChild(input);
+                                    wrapper.appendChild(labelText);
+
+                                    // span de contagem — NÃO mostrar para "Todos"
+                                    if (showCount) {
+                                        const countSpan = document.createElement("span");
+                                        countSpan.className = "count";
+                                        countSpan.textContent = ""; // será preenchido depois
+                                        wrapper.appendChild(countSpan);
+                                        radioInfoList.push({ input, countSpan, cls, desc, value });
+                                    } else {
+                                        // mesmo sem count, guardamos para restaurar estado do radio
+                                        radioInfoList.push({ input, countSpan: null, cls, desc, value });
+                                    }
+
+                                    fieldset.appendChild(wrapper);
+                                }
+
+                                // "Todos" — sem número ao lado (REQUISITO 1)
+                                makeRadio("", "Todos", { showCount: false });
+
+                                // valores conhecidos
+                                [...traitMap[cls][desc]].sort().forEach((qual) => {
+                                    makeRadio(qual, qual);
+                                });
+
+                                // desconhecido
+                                makeRadio(UNKNOWN_VALUE, UNKNOWN_LABEL);
+
+                                inner.appendChild(fieldset);
+                            });
+
+                        container.appendChild(section);
+                    });
+
+                /* Navegação suave dentro do painel */
+                toc.addEventListener("click", (e) => {
+                    if (e.target.tagName === "A") {
+                        e.preventDefault();
+                        const id = e.target.getAttribute("href").slice(1);
+                        const target = document.getElementById(id);
+                        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                });
+            }
+
+            // ============= Lógica de filtragem e contagem =============
+            function getFilteredData() {
+                const query = searchInput.value.trim().toLowerCase();
+                return data.filter((item) => {
+                    if (query && !item.name.toLowerCase().includes(query)) return false;
+                    for (const [cls, descriptors] of Object.entries(selectedFilters)) {
+                        const itemDescriptors = item.traits[cls];
+                        for (const [desc, qual] of Object.entries(descriptors)) {
+                            if (qual === UNKNOWN_VALUE) {
+                                if (itemDescriptors && Object.prototype.hasOwnProperty.call(itemDescriptors, desc)) return false;
+                            } else {
+                                if (!itemDescriptors || itemDescriptors[desc] !== qual) return false;
+                            }
+                        }
+                    }
+                    return true;
+                });
+            }
+
+            function computeCounts(remaining) {
+                const counts = {};
+                Object.entries(traitMap).forEach(([cls, descriptors]) => {
+                    if (!counts[cls]) counts[cls] = {};
+                    Object.entries(descriptors).forEach(([desc, values]) => {
+                        if (!counts[cls][desc]) counts[cls][desc] = {};
+                        counts[cls][desc][UNKNOWN_VALUE] = 0;
+                        [...values].forEach((v) => { counts[cls][desc][v] = 0; });
+                        counts[cls][desc][""] = remaining.length; // mantém referência (não exibimos em UI)
+                    });
+                });
+
+                remaining.forEach((item) => {
+                    Object.entries(traitMap).forEach(([cls, descriptors]) => {
+                        Object.keys(descriptors).forEach((desc) => {
+                            const itemDescriptors = item.traits[cls] || {};
+                            if (Object.prototype.hasOwnProperty.call(itemDescriptors, desc)) {
+                                const val = itemDescriptors[desc];
+                                if (counts?.[cls]?.[desc]?.[val] != null) counts[cls][desc][val]++;
+                            } else {
+                                counts[cls][desc][UNKNOWN_VALUE]++;
+                            }
+                        });
+                    });
+                });
+                return counts;
+            }
+
+            function updateCountSpans(counts) {
+                radioInfoList.forEach(({ countSpan, cls, desc, value }) => {
+                    if (!countSpan) return; // não mostrar para "Todos"
+                    const count = counts?.[cls]?.[desc]?.[value] ?? 0;
+                    countSpan.textContent = `(${count})`;
+                });
+            }
+
+            // Filtros ativos (chips)
+            function renderActiveChips() {
+                activeFiltersWrap.innerHTML = '';
+                Object.entries(selectedFilters).forEach(([cls, descriptors]) => {
+                    Object.entries(descriptors).forEach(([desc, value]) => {
+                        const chip = document.createElement('span');
+                        chip.className = 'chip';
+                        chip.innerHTML = `<strong>${cls}</strong>: ${desc} = ${value}`;
+                        const btn = document.createElement('button');
+                        btn.setAttribute('aria-label', 'Remover filtro');
+                        btn.textContent = '×';
+                        btn.addEventListener('click', () => {
+                            delete selectedFilters[cls][desc];
+                            if (Object.keys(selectedFilters[cls]).length === 0) delete selectedFilters[cls];
+                            // Marcar o radio "Todos" correspondente
+                            const groupName = `${cls}__${desc}`;
+                            const allRadio = document.querySelector(`input[name="${CSS.escape(groupName)}"][value=""]`);
+                            if (allRadio) allRadio.checked = true;
+                            saveStateToHash();
+                            render();
+                        });
+                        chip.appendChild(btn);
+                        activeFiltersWrap.appendChild(chip);
+                    });
+                });
+            }
+
+            // ============= Cartões =============
+            function createCard(item) {
+                const card = document.createElement("article");
+                card.className = "card";
+                card.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" loading="lazy">
+          <div class="card-content">
+            <h3>${item.name}</h3>
+            <div class="tags">
+              ${Object.entries(item.traits)
+                        .map(([cls, descriptors]) =>
+                            Object.entries(descriptors)
+                                .map(([desc, qual]) => `<span class="tag">${cls}: ${desc} = ${qual}</span>`)
+                                .join("")
+                        )
+                        .join("")}
+            </div>
+          </div>`;
+                return card;
+            }
+
+            function render() {
+                const remaining = getFilteredData();
+                const counts = computeCounts(remaining);
+                updateCountSpans(counts);
+                renderActiveChips();
+
+                // renderizar cartões
+                cardsContainer.innerHTML = "";
+                if (!remaining.length) {
+                    emptyEl.hidden = false;
+                } else {
+                    emptyEl.hidden = true;
+                    remaining.forEach((item) => cardsContainer.appendChild(createCard(item)));
+                }
+            }
+
+            // Eventos
+            clearBtn.addEventListener("click", () => {
+                document.querySelectorAll('#filters input[type=radio][value=""]').forEach((rb) => { rb.checked = true; });
+                selectedFilters = {};
+                searchInput.value = '';
+                saveStateToHash();
+                render();
+            });
+
+            collapseAllBtn.addEventListener('click', () => {
+                document.querySelectorAll('#filters section > div').forEach(div => { div.hidden = !div.hidden; });
+            });
+
+            searchInput.addEventListener('input', () => { saveStateToHash(); render(); });
+
+            // Inicializar
+            loadStateFromHash();
+            buildFilters();
+
+            // Restaurar estado dos radios a partir do hash
+            Object.entries(selectedFilters).forEach(([cls, descs]) => {
+                Object.entries(descs).forEach(([desc, value]) => {
+                    const groupName = `${cls}__${desc}`;
+                    const radio = document.querySelector(`input[name="${CSS.escape(groupName)}"][value="${CSS.escape(value)}"]`);
+                    if (radio) radio.checked = true;
+                });
+            });
+
+
+            await hydrateImagesFromWikidata(data);
+            render();
+        };
+        init();
+    </script>
+</body>
+
+</html>
