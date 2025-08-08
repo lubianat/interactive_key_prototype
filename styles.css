@@ -7,6 +7,10 @@
     --border-radius: 12px;
     --muted: #666;
     --border: #ddd;
+
+    /* new subtle accents */
+    --active-bg: #f1f8f5;
+    --hover-bg: #eef6f2;
 }
 
 * {
@@ -27,9 +31,7 @@ body {
     display: grid;
     grid-template-columns: 280px 1fr;
     height: 100vh;
-    /* ocupa toda a viewport */
     overflow: hidden;
-    /* impede que a página inteira role */
 }
 
 /* ============= Lado esquerdo (painel) ============= */
@@ -37,17 +39,14 @@ aside {
     background: #fff;
     border-right: 1px solid var(--border);
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
-    /* título, toc, filtros (rola), rodapé */
+    grid-template-rows: auto auto auto 1fr auto;
+    /* título, sort, toc, filtros (rola), rodapé */
     gap: 0.75rem;
     padding: 0.75rem;
     height: 100vh;
-    /* garante altura fixa */
     position: sticky;
-    /* fixa no topo mesmo se o main rolar */
     top: 0;
     overflow: hidden;
-    /* só o contêiner interno rola */
 }
 
 #appTitle {
@@ -58,6 +57,35 @@ aside {
 
 small.meta {
     color: var(--muted);
+}
+
+/* ===== Sort selector (new) ===== */
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.sort-controls label {
+    color: var(--muted);
+}
+
+#sortMode {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 0.35rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#sortMode:focus {
+    outline: 2px solid color-mix(in oklab, var(--primary) 40%, white);
+    outline-offset: 2px;
 }
 
 /* Navegação interna */
@@ -87,20 +115,57 @@ small.meta {
 #filters {
     overflow: auto;
     padding-right: 0.25rem;
+    scroll-padding-top: 0.5rem;
+    /* nicer in-page jumps */
 }
 
 /* Cabeçalhos dos grupos de filtros */
 #filters h3 {
+    position: sticky;
+    /* keep section headers visible while scrolling long groups */
+    top: 0;
+    z-index: 1;
+    background: inherit;
     margin: 1rem 0 0.25rem;
+    padding: 0.25rem 0;
     font-size: 0.95rem;
     color: var(--primary);
+    cursor: pointer;
 }
 
+/* Fieldsets */
 fieldset {
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 0.5rem 0.6rem;
     margin: 0.4rem 0;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+fieldset:hover {
+    background: var(--hover-bg);
+}
+
+/* ✅ Highlight any descriptor with an active selection (NOT "Todos") */
+fieldset:has(input[type="radio"]:checked:not([value=""])) {
+    border-color: var(--primary);
+    background: var(--active-bg);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+/* Show a tiny badge on active legends */
+fieldset:has(input[type="radio"]:checked:not([value=""])) legend::after {
+    content: "Ativo";
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 12%, white);
+    border: 1px solid color-mix(in oklab, var(--primary) 30%, white);
+    padding: 0.05rem 0.35rem;
+    border-radius: 999px;
+    vertical-align: 1px;
 }
 
 legend {
@@ -136,11 +201,21 @@ button,
     color: #fff;
     cursor: pointer;
     font-weight: 600;
+    transition: filter 0.2s, background 0.2s, color 0.2s;
+}
+
+button:hover,
+.btn:hover {
+    filter: brightness(0.95);
 }
 
 button.secondary {
     background: #fff;
     color: var(--primary);
+}
+
+button.secondary:hover {
+    background: color-mix(in oklab, var(--primary) 8%, white);
 }
 
 /* Chips de filtros ativos */
@@ -159,6 +234,7 @@ button.secondary {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    border: 1px solid color-mix(in oklab, var(--tag-text) 28%, white);
 }
 
 .chip button {
@@ -259,6 +335,8 @@ main {
         --tag-bg: #11392e;
         --tag-text: #b6f0da;
         --border: #222933;
+        --active-bg: #0f1a15;
+        --hover-bg: #111a16;
     }
 
     body {
@@ -273,5 +351,27 @@ main {
     .search {
         background: #0f1218;
         border-color: var(--border);
+    }
+
+    /* Better contrast for active badge in dark mode */
+    fieldset:has(input[type="radio"]:checked:not([value=""])) legend::after {
+        background: color-mix(in oklab, var(--primary) 20%, #0f1218);
+        border-color: color-mix(in oklab, var(--primary) 40%, #0f1218);
+    }
+}
+
+/* Small screens: collapse the grid a bit */
+@media (max-width: 860px) {
+    body {
+        grid-template-columns: 1fr;
+    }
+
+    aside {
+        position: static;
+        height: auto;
+    }
+
+    main {
+        height: auto;
     }
 }

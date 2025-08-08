@@ -12,15 +12,20 @@ async function init() {
     const collapseAllBtn = document.getElementById("collapseAllBtn");
     const searchInput = document.getElementById("search");
     const activeFiltersWrap = document.getElementById("activeFilters");
+    const sortModeSelect = document.getElementById("sortMode");
 
     // Cache to avoid duplicate network calls
     const wikidataImageCache = new Map();
+
+    // Sorting state
+    let filterSortMode = "alpha";
+    const fieldsetRefs = {};
+    const sectionInners = {};
 
     async function getWikidataImageURL(qid, width = 640) {
         if (!qid) return null;
         if (wikidataImageCache.has(qid)) return wikidataImageCache.get(qid);
 
-        // 1) Fetch entity JSON
         const url = `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`;
         const resp = await fetch(url);
         if (!resp.ok) return null;
@@ -33,15 +38,13 @@ async function init() {
             return null;
         }
 
-        // 2) Convert filename (with spaces) to a live image via Commons
-        const filename = encodeURIComponent(p18); // e.g., "Eucalyptus_globulus_fleurs.jpg"
+        const filename = encodeURIComponent(p18);
         const filePath = `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}?width=${width}`;
 
         wikidataImageCache.set(qid, filePath);
         return filePath;
     }
 
-    // Resolve images for all items in parallel; keep any existing fallback image if no P18
     async function hydrateImagesFromWikidata(items) {
         await Promise.all(items.map(async (it) => {
             const url = await getWikidataImageURL(it.wikidata);
@@ -49,9 +52,7 @@ async function init() {
         }));
     }
 
-    // =========================
-    // Construir mapa de traços
-    // =========================
+    // Build trait map
     const traitMap = {};
     data.forEach((item) => {
         Object.entries(item.traits).forEach(([cls, descriptors]) => {
@@ -63,15 +64,11 @@ async function init() {
         });
     });
 
-    // Estado dos filtros selecionados
     let selectedFilters = {};
-
-    // Guardamos referências para atualizar contagens rapidamente
     const radioInfoList = [];
 
-    // Persistência simples via URL hash
     function saveStateToHash() {
-        const state = { selectedFilters, q: searchInput.value };
+        const state = { selectedFilters, q: searchInput.value, sort: filterSortMode };
         location.hash = encodeURIComponent(JSON.stringify(state));
     }
     function loadStateFromHash() {
@@ -81,13 +78,11 @@ async function init() {
                 selectedFilters = state.selectedFilters || {};
                 const q = state.q || '';
                 searchInput.value = q;
+                filterSortMode = state.sort || "alpha";
             }
         } catch (_) { }
     }
 
-    // =========================
-    // Construir UI de filtros
-    // =========================
     function buildFilters() {
         const container = document.getElementById("filters");
         const toc = document.getElementById("toc");
@@ -95,13 +90,11 @@ async function init() {
         Object.keys(traitMap)
             .sort()
             .forEach((cls) => {
-                // âncora de navegação
                 const anchorLink = document.createElement("a");
                 anchorLink.href = `#sec-${cls}`;
                 anchorLink.textContent = cls;
                 toc.appendChild(anchorLink);
 
-                // seção dos filtros da classe (colapsável)
                 const section = document.createElement("section");
                 section.id = `sec-${cls}`;
 
@@ -113,6 +106,7 @@ async function init() {
 
                 const inner = document.createElement('div');
                 section.appendChild(inner);
+                sectionInners[cls] = inner;
 
                 header.addEventListener('click', () => {
                     inner.hidden = !inner.hidden;
@@ -128,7 +122,7 @@ async function init() {
                         legend.textContent = desc;
                         fieldset.appendChild(legend);
 
-                        const groupName = `${cls}__${desc}`; // único por descritor
+                        const groupName = `${cls}__${desc}`;
 
                         function makeRadio(value, label, { showCount = true } = {}) {
                             const id = `${groupName}-${value || "all"}`;
@@ -140,7 +134,7 @@ async function init() {
                             input.type = "radio";
                             input.name = groupName;
                             input.value = value;
-                            if (value === "") input.checked = true; // "Todos" padrão
+                            if (value === "") input.checked = true;
 
                             input.addEventListener("change", (e) => {
                                 const val = e.target.value;
@@ -164,39 +158,34 @@ async function init() {
                             wrapper.appendChild(input);
                             wrapper.appendChild(labelText);
 
-                            // span de contagem — NÃO mostrar para "Todos"
                             if (showCount) {
                                 const countSpan = document.createElement("span");
                                 countSpan.className = "count";
-                                countSpan.textContent = ""; // será preenchido depois
+                                countSpan.textContent = "";
                                 wrapper.appendChild(countSpan);
                                 radioInfoList.push({ input, countSpan, cls, desc, value });
                             } else {
-                                // mesmo sem count, guardamos para restaurar estado do radio
                                 radioInfoList.push({ input, countSpan: null, cls, desc, value });
                             }
 
                             fieldset.appendChild(wrapper);
                         }
 
-                        // "Todos" — sem número ao lado (REQUISITO 1)
                         makeRadio("", "Todos", { showCount: false });
-
-                        // valores conhecidos
                         [...traitMap[cls][desc]].sort().forEach((qual) => {
                             makeRadio(qual, qual);
                         });
-
-                        // desconhecido
                         makeRadio(UNKNOWN_VALUE, UNKNOWN_LABEL);
 
                         inner.appendChild(fieldset);
+
+                        if (!fieldsetRefs[cls]) fieldsetRefs[cls] = {};
+                        fieldsetRefs[cls][desc] = fieldset;
                     });
 
                 container.appendChild(section);
             });
 
-        /* Navegação suave dentro do painel */
         toc.addEventListener("click", (e) => {
             if (e.target.tagName === "A") {
                 e.preventDefault();
@@ -207,7 +196,6 @@ async function init() {
         });
     }
 
-    // ============= Lógica de filtragem e contagem =============
     function getFilteredData() {
         const query = searchInput.value.trim().toLowerCase();
         return data.filter((item) => {
@@ -234,7 +222,7 @@ async function init() {
                 if (!counts[cls][desc]) counts[cls][desc] = {};
                 counts[cls][desc][UNKNOWN_VALUE] = 0;
                 [...values].forEach((v) => { counts[cls][desc][v] = 0; });
-                counts[cls][desc][""] = remaining.length; // mantém referência (não exibimos em UI)
+                counts[cls][desc][""] = remaining.length;
             });
         });
 
@@ -256,13 +244,59 @@ async function init() {
 
     function updateCountSpans(counts) {
         radioInfoList.forEach(({ countSpan, cls, desc, value }) => {
-            if (!countSpan) return; // não mostrar para "Todos"
+            if (!countSpan) return;
             const count = counts?.[cls]?.[desc]?.[value] ?? 0;
             countSpan.textContent = `(${count})`;
         });
     }
 
-    // Filtros ativos (chips)
+    function reorderFieldsets(counts) {
+        Object.keys(traitMap).forEach((cls) => {
+            const inner = sectionInners[cls];
+            if (!inner) return;
+
+            const entries = Object.keys(traitMap[cls]).map((desc) => {
+                // Is this descriptor actively filtered (NOT "Todos")?
+                const isActive = !!(selectedFilters?.[cls] && Object.prototype.hasOwnProperty.call(selectedFilters[cls], desc));
+
+                // Informativeness score (live)
+                let score = 0;
+                if (filterSortMode === "info") {
+                    const buckets = counts?.[cls]?.[desc] || null;
+                    if (buckets) {
+                        Object.entries(buckets).forEach(([val, cnt]) => {
+                            if (val === "") return;   // skip meta "Todos"
+                            if (cnt > 0) score++;
+                        });
+                    } else {
+                        score = traitMap[cls][desc].size + 1; // fallback
+                    }
+                }
+
+                return [desc, fieldsetRefs?.[cls]?.[desc], score, isActive];
+            });
+
+            entries.sort((a, b) => {
+                // 1) Active filters first (pinned)
+                if (a[3] !== b[3]) return b[3] - a[3];
+
+                // 2) Then by chosen sort mode
+                if (filterSortMode === "info") {
+                    if (b[2] !== a[2]) return b[2] - a[2];       // score desc
+                    return a[0].localeCompare(b[0]);             // tie-break A–Z
+                }
+
+                // "alpha"
+                return a[0].localeCompare(b[0]);
+            });
+
+            // Re-append in new order
+            entries.forEach(([, fieldset]) => {
+                if (fieldset) inner.appendChild(fieldset);
+            });
+        });
+    }
+
     function renderActiveChips() {
         activeFiltersWrap.innerHTML = '';
         Object.entries(selectedFilters).forEach(([cls, descriptors]) => {
@@ -276,7 +310,6 @@ async function init() {
                 btn.addEventListener('click', () => {
                     delete selectedFilters[cls][desc];
                     if (Object.keys(selectedFilters[cls]).length === 0) delete selectedFilters[cls];
-                    // Marcar o radio "Todos" correspondente
                     const groupName = `${cls}__${desc}`;
                     const allRadio = document.querySelector(`input[name="${CSS.escape(groupName)}"][value=""]`);
                     if (allRadio) allRadio.checked = true;
@@ -289,12 +322,11 @@ async function init() {
         });
     }
 
-    // ============= Cartões =============
     function createCard(item) {
         const card = document.createElement("article");
         card.className = "card";
         card.innerHTML = `
-  <img src="${item.image}" alt="${item.name}" loading="lazy">
+  <img src="${item.image}" alt="Placeholder for ${item.name}" loading="lazy">
   <div class="card-content">
     <h3>${item.name}</h3>
     <div class="tags">
@@ -315,8 +347,8 @@ async function init() {
         const counts = computeCounts(remaining);
         updateCountSpans(counts);
         renderActiveChips();
+        reorderFieldsets(counts);
 
-        // renderizar cartões
         cardsContainer.innerHTML = "";
         if (!remaining.length) {
             emptyEl.hidden = false;
@@ -326,7 +358,6 @@ async function init() {
         }
     }
 
-    // Eventos
     clearBtn.addEventListener("click", () => {
         document.querySelectorAll('#filters input[type=radio][value=""]').forEach((rb) => { rb.checked = true; });
         selectedFilters = {};
@@ -341,11 +372,16 @@ async function init() {
 
     searchInput.addEventListener('input', () => { saveStateToHash(); render(); });
 
-    // Inicializar
+    sortModeSelect.addEventListener("change", () => {
+        filterSortMode = sortModeSelect.value;
+        saveStateToHash();
+        render();
+    });
+
     loadStateFromHash();
+    sortModeSelect.value = filterSortMode;
     buildFilters();
 
-    // Restaurar estado dos radios a partir do hash
     Object.entries(selectedFilters).forEach(([cls, descs]) => {
         Object.entries(descs).forEach(([desc, value]) => {
             const groupName = `${cls}__${desc}`;
@@ -354,10 +390,10 @@ async function init() {
         });
     });
 
-
     await hydrateImagesFromWikidata(data);
     render();
 };
+
 let specs, data;
 
 async function loadDataAndInit() {
@@ -367,7 +403,7 @@ async function loadDataAndInit() {
     const dbResp = await fetch('database.json');
     data = await dbResp.json();
 
-    init(); // your existing init code
+    init();
 }
 
 loadDataAndInit();

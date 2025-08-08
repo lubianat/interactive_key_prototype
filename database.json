@@ -1,48 +1,87 @@
 [
     {
-      "name": "Rubiaceae",
-      "wikidata": "Q156569",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Coffea_arabica_flowers.jpg",
-      "traits": {
-        "Leaf": { "Arrangement": "Opposite", "Type": "Simple" },
-        "Flower": { "Symmetry": "Actinomorphic", "Ovary position": "Inferior" }
-      }
+        "name": "Rubiaceae",
+        "wikidata": "Q156569",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Coffea_arabica_flowers.jpg",
+        "traits": {
+            "Leaf": {
+                "Arrangement": "Opposite",
+                "Type": "Simple"
+            },
+            "Flower": {
+                "Symmetry": "Actinomorphic",
+                "Ovary position": "Inferior"
+            }
+        }
     },
     {
-      "name": "Melastomataceae",
-      "wikidata": "Q648380",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/Tibouchina_semidecandra_flower.jpg",
-      "traits": {
-        "Leaf": { "Arrangement": "Opposite", "Type": "Simple", "Venation": "Acrodromous" },
-        "Flower": { "Symmetry": "Actinomorphic", "Stamen number": "Numerous" }
-      }
+        "name": "Melastomataceae",
+        "wikidata": "Q648380",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/Tibouchina_semidecandra_flower.jpg",
+        "traits": {
+            "Leaf": {
+                "Arrangement": "Opposite",
+                "Type": "Simple",
+                "Venation": "Acrodromous"
+            },
+            "Flower": {
+                "Symmetry": "Actinomorphic",
+                "Stamen number": "Numerous"
+            }
+        }
     },
     {
-      "name": "Fabaceae",
-      "wikidata": "Q44448",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Delonix_regia_flower.jpg",
-      "traits": {
-        "Leaf": { "Arrangement": "Alternate", "Type": "Compound" },
-        "Flower": { "Symmetry": "Zygomorphic", "Ovary position": "Superior" }
-      }
+        "name": "Fabaceae",
+        "wikidata": "Q44448",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Delonix_regia_flower.jpg",
+        "traits": {
+            "Leaf": {
+                "Arrangement": "Alternate",
+                "Type": "Compound"
+            },
+            "Flower": {
+                "Symmetry": "Zygomorphic",
+                "Ovary position": "Superior"
+            }
+        }
     },
     {
-      "name": "Myrtaceae",
-      "wikidata": "Q156563",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/4/42/Eucalyptus_globulus_flower.jpg",
-      "traits": {
-        "Leaf": { "Arrangement": "Opposite", "Type": "Simple", "Aroma": "Aromatic glands" },
-        "Flower": { "Symmetry": "Actinomorphic", "Stamen number": "Many" }
-      }
+        "name": "Myrtaceae",
+        "wikidata": "Q156563",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/42/Eucalyptus_globulus_flower.jpg",
+        "traits": {
+            "Leaf": {
+                "Arrangement": "Opposite",
+                "Type": "Simple",
+                "Aroma": "Aromatic glands"
+            },
+            "Flower": {
+                "Symmetry": "Actinomorphic",
+                "Stamen number": "Many"
+            }
+        }
     },
     {
-      "name": "Poaceae",
-      "wikidata": "Q43238",
-      "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Bamboo_forest_in_Japan.jpg",
-      "traits": {
-        "Leaf": { "Arrangement": "Alternate", "Type": "Simple", "Sheath": "Open" },
-        "Stem": { "Structure": "Hollow", "Nodes": "Prominent" },
-        "Flower": { "Inflorescence": "Spikelet" }
-      }
+        "name": "Poaceae",
+        "wikidata": "Q43238",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Bamboo_forest_in_Japan.jpg",
+        "traits": {
+            "Leaf": {
+                "Arrangement": "Alternate",
+                "Type": "Simple",
+                "Sheath": "Open"
+            },
+            "Stem": {
+                "Structure": "Hollow",
+                "Nodes": "Prominent"
+            },
+            "Flower": {
+                "Inflorescence": "Spikelet"
+            }
+        }
+    },
+    {
+        "name": "Anacardiaceae",
+        "traits": {}
     }
-  ]
+]
