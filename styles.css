@@ -1,0 +1,277 @@
+:root {
+    --primary: #2a7a5e;
+    --bg: #f9f9f9;
+    --card-bg: #fff;
+    --tag-bg: #e0f0ea;
+    --tag-text: #2a7a5e;
+    --border-radius: 12px;
+    --muted: #666;
+    --border: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+/* Mantém as colunas com rolagem independentes */
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+    background: var(--bg);
+    color: #333;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: 100vh;
+    /* ocupa toda a viewport */
+    overflow: hidden;
+    /* impede que a página inteira role */
+}
+
+/* ============= Lado esquerdo (painel) ============= */
+aside {
+    background: #fff;
+    border-right: 1px solid var(--border);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    /* título, toc, filtros (rola), rodapé */
+    gap: 0.75rem;
+    padding: 0.75rem;
+    height: 100vh;
+    /* garante altura fixa */
+    position: sticky;
+    /* fixa no topo mesmo se o main rolar */
+    top: 0;
+    overflow: hidden;
+    /* só o contêiner interno rola */
+}
+
+#appTitle {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+small.meta {
+    color: var(--muted);
+}
+
+/* Navegação interna */
+#toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+#toc a {
+    text-decoration: none;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+#toc a:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+/* Área scrollável de filtros */
+#filters {
+    overflow: auto;
+    padding-right: 0.25rem;
+}
+
+/* Cabeçalhos dos grupos de filtros */
+#filters h3 {
+    margin: 1rem 0 0.25rem;
+    font-size: 0.95rem;
+    color: var(--primary);
+}
+
+fieldset {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.5rem 0.6rem;
+    margin: 0.4rem 0;
+}
+
+legend {
+    padding: 0 0.25rem;
+    font-weight: 600;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    padding: 0.15rem 0;
+}
+
+.count {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.aside-footer {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+button,
+.btn {
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--primary);
+    border-radius: var(--border-radius);
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+button.secondary {
+    background: #fff;
+    color: var(--primary);
+}
+
+/* Chips de filtros ativos */
+#activeFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.chip {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.chip button {
+    border: none;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* ============= Cartões à direita ============= */
+main {
+    height: 100vh;
+    overflow: auto;
+    padding: 1rem;
+}
+
+/* Barra de ações acima dos cards */
+.toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.4rem 0.6rem;
+}
+
+.search input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.95rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+}
+
+.card-content {
+    padding: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.tag {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+}
+
+/* Estado vazio */
+.empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 2rem 1rem;
+}
+
+/* Preferência de cor do sistema */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0f1115;
+        --card-bg: #151922;
+        --tag-bg: #11392e;
+        --tag-text: #b6f0da;
+        --border: #222933;
+    }
+
+    body {
+        color: #e7eaf0;
+    }
+
+    aside {
+        background: #0f1218;
+        border-right-color: var(--border);
+    }
+
+    .search {
+        background: #0f1218;
+        border-color: var(--border);
+    }
+}
