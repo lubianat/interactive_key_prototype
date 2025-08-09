@@ -2,6 +2,7 @@
   {
     "name": "Dictyoloma",
     "wikibase": "Q10",
+    "wikidata_xref": null,
     "traits": {
       "Folha": {
         "estrutura foliar": "bipinada"
@@ -12,6 +13,7 @@
   {
     "name": "Esenbeckia",
     "wikibase": "Q24",
+    "wikidata_xref": null,
     "traits": {
       "Folha": {
         "estrutura foliar": "1-5 foliolada"
@@ -25,6 +27,7 @@
   {
     "name": "Galipea",
     "wikibase": "Q16",
+    "wikidata_xref": null,
     "traits": {
       "Folha": {
         "estrutura foliar": "trifoliolada",
@@ -39,6 +42,7 @@
   {
     "name": "Zanthoxylum",
     "wikibase": "Q14",
+    "wikidata_xref": "Q147050",
     "traits": {
       "Folha": {
         "estrutura foliar": "simplesmente pinada"
