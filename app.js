@@ -21,36 +21,8 @@ async function init() {
     let filterSortMode = "alpha";
     const fieldsetRefs = {};
     const sectionInners = {};
+    const WIKIBASE = "https://reflora-traits-test.wikibase.cloud"
 
-    async function getWikidataImageURL(qid, width = 640) {
-        if (!qid) return null;
-        if (wikidataImageCache.has(qid)) return wikidataImageCache.get(qid);
-
-        const url = `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`;
-        const resp = await fetch(url);
-        if (!resp.ok) return null;
-        const json = await resp.json();
-
-        const entity = json.entities?.[qid];
-        const p18 = entity?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
-        if (!p18) {
-            wikidataImageCache.set(qid, null);
-            return null;
-        }
-
-        const filename = encodeURIComponent(p18);
-        const filePath = `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}?width=${width}`;
-
-        wikidataImageCache.set(qid, filePath);
-        return filePath;
-    }
-
-    async function hydrateImagesFromWikidata(items) {
-        await Promise.all(items.map(async (it) => {
-            const url = await getWikidataImageURL(it.wikidata);
-            if (url) it.image = url;
-        }));
-    }
 
     // Build trait map
     const traitMap = {};
@@ -326,7 +298,7 @@ async function init() {
         const card = document.createElement("article");
         card.className = "card";
         card.innerHTML = `
-  <img src="${item.image}" alt="Placeholder for ${item.name}" loading="lazy">
+  <img src="${item.imageURL}" alt="Placeholder for ${item.name}" loading="lazy">
   <div class="card-content">
     <h3>${item.name}</h3>
     <div class="tags">
@@ -390,7 +362,6 @@ async function init() {
         });
     });
 
-    await hydrateImagesFromWikidata(data);
     render();
 };
 
