@@ -1,87 +1,53 @@
 [
-    {
-        "name": "Rubiaceae",
-        "wikidata": "Q156569",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Coffea_arabica_flowers.jpg",
-        "traits": {
-            "Leaf": {
-                "Arrangement": "Opposite",
-                "Type": "Simple"
-            },
-            "Flower": {
-                "Symmetry": "Actinomorphic",
-                "Ovary position": "Inferior"
-            }
-        }
+  {
+    "name": "Dictyoloma",
+    "wikibase": "Q10",
+    "wikidata_xref": null,
+    "traits": {
+      "Folha": {
+        "estrutura foliar": "bipinada"
+      }
     },
-    {
-        "name": "Melastomataceae",
-        "wikidata": "Q648380",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/2/25/Tibouchina_semidecandra_flower.jpg",
-        "traits": {
-            "Leaf": {
-                "Arrangement": "Opposite",
-                "Type": "Simple",
-                "Venation": "Acrodromous"
-            },
-            "Flower": {
-                "Symmetry": "Actinomorphic",
-                "Stamen number": "Numerous"
-            }
-        }
+    "imageURL": "http://commons.wikimedia.org/wiki/Special:FilePath/Dictyoloma%20incanescens.png"
+  },
+  {
+    "name": "Esenbeckia",
+    "wikibase": "Q24",
+    "wikidata_xref": null,
+    "traits": {
+      "Folha": {
+        "estrutura foliar": "1-5 foliolada"
+      },
+      "Flor": {
+        "fusão da corola": "dialipétala"
+      }
     },
-    {
-        "name": "Fabaceae",
-        "wikidata": "Q44448",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Delonix_regia_flower.jpg",
-        "traits": {
-            "Leaf": {
-                "Arrangement": "Alternate",
-                "Type": "Compound"
-            },
-            "Flower": {
-                "Symmetry": "Zygomorphic",
-                "Ovary position": "Superior"
-            }
-        }
+    "imageURL": "http://commons.wikimedia.org/wiki/Special:FilePath/Esenbeckia%20grandiflora%20Mart.%20-%20Flickr%20-%20Alex%20Popovkin%2C%20Bahia%2C%20Brazil%20%2823%29.jpg"
+  },
+  {
+    "name": "Galipea",
+    "wikibase": "Q16",
+    "wikidata_xref": null,
+    "traits": {
+      "Folha": {
+        "estrutura foliar": "trifoliolada",
+        "ápice de folha ou folíolo": "emarginado"
+      },
+      "Flor": {
+        "fusão da corola": "gamopétala"
+      }
     },
-    {
-        "name": "Myrtaceae",
-        "wikidata": "Q156563",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/4/42/Eucalyptus_globulus_flower.jpg",
-        "traits": {
-            "Leaf": {
-                "Arrangement": "Opposite",
-                "Type": "Simple",
-                "Aroma": "Aromatic glands"
-            },
-            "Flower": {
-                "Symmetry": "Actinomorphic",
-                "Stamen number": "Many"
-            }
-        }
+    "imageURL": "http://commons.wikimedia.org/wiki/Special:FilePath/Galipea%20revoluta%20Pirani%20%2818903668671%29.jpg"
+  },
+  {
+    "name": "Zanthoxylum",
+    "wikibase": "Q14",
+    "wikidata_xref": "Q147050",
+    "traits": {
+      "Folha": {
+        "estrutura foliar": "simplesmente pinada"
+      }
     },
-    {
-        "name": "Poaceae",
-        "wikidata": "Q43238",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Bamboo_forest_in_Japan.jpg",
-        "traits": {
-            "Leaf": {
-                "Arrangement": "Alternate",
-                "Type": "Simple",
-                "Sheath": "Open"
-            },
-            "Stem": {
-                "Structure": "Hollow",
-                "Nodes": "Prominent"
-            },
-            "Flower": {
-                "Inflorescence": "Spikelet"
-            }
-        }
-    },
-    {
-        "name": "Anacardiaceae",
-        "traits": {}
-    }
+    "imageURL": "http://commons.wikimedia.org/wiki/Special:FilePath/Zanthoxylum%20rhoifolium%202zz.jpg"
+  }
 ]

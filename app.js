@@ -21,36 +21,8 @@ async function init() {
     let filterSortMode = "alpha";
     const fieldsetRefs = {};
     const sectionInners = {};
+    const WIKIBASE = "https://reflora-traits-test.wikibase.cloud"
 
-    async function getWikidataImageURL(qid, width = 640) {
-        if (!qid) return null;
-        if (wikidataImageCache.has(qid)) return wikidataImageCache.get(qid);
-
-        const url = `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`;
-        const resp = await fetch(url);
-        if (!resp.ok) return null;
-        const json = await resp.json();
-
-        const entity = json.entities?.[qid];
-        const p18 = entity?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
-        if (!p18) {
-            wikidataImageCache.set(qid, null);
-            return null;
-        }
-
-        const filename = encodeURIComponent(p18);
-        const filePath = `https://commons.wikimedia.org/wiki/Special:FilePath/${filename}?width=${width}`;
-
-        wikidataImageCache.set(qid, filePath);
-        return filePath;
-    }
-
-    async function hydrateImagesFromWikidata(items) {
-        await Promise.all(items.map(async (it) => {
-            const url = await getWikidataImageURL(it.wikidata);
-            if (url) it.image = url;
-        }));
-    }
 
     // Build trait map
     const traitMap = {};
@@ -325,21 +297,48 @@ async function init() {
     function createCard(item) {
         const card = document.createElement("article");
         card.className = "card";
+
+        // Build base links
+        let links = [
+            `<a href="https://reflora-traits-test.wikibase.cloud/wiki/Item:${item.wikibase}" target="_blank" rel="noopener">
+            <span>Serra do Cipó Wikibase</span>
+          </a>`
+        ];
+        if (item.wikidata_xref && item.wikidata_xref !== "null") {
+            links.push(`<a href="https://www.wikidata.org/wiki/${item.wikidata_xref}" target="_blank" rel="noopener">
+            <span>Wikidata</span>
+          </a>`);
+        }
+
         card.innerHTML = `
-  <img src="${item.image}" alt="Placeholder for ${item.name}" loading="lazy">
-  <div class="card-content">
-    <h3>${item.name}</h3>
-    <div class="tags">
-      ${Object.entries(item.traits)
-                .map(([cls, descriptors]) =>
-                    Object.entries(descriptors)
-                        .map(([desc, qual]) => `<span class="tag">${cls}: ${desc} = ${qual}</span>`)
-                        .join("")
-                )
+          <img src="${item.imageURL || ""}" alt="Placeholder for ${item.name}" loading="lazy">
+          <div class="card-content">
+            <h3>${item.name}</h3>
+            <div class="links">${links.join("")}</div>
+            <div class="tags">
+              ${Object.entries(item.traits)
+                .flatMap(([cls, descs]) => Object.entries(descs)
+                    .map(([d, q]) => `<span class="tag">${cls}: ${d} = ${q}</span>`))
                 .join("")}
-    </div>
-  </div>`;
+            </div>
+          </div>
+        `;
         return card;
+    }
+
+
+
+
+    // After appending the card:
+    async function hydrateExternalLinks(card, wikidataQid) {
+        if (!wikidataQid || wikidataQid === "null") return;
+        const url = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${wikidataQid}&format=json&props=claims&origin=*`;
+        const claims = (await (await fetch(url)).json())?.entities?.[wikidataQid]?.claims || {};
+        const gbif = claims.P846?.[0]?.mainsnak?.datavalue?.value;
+        const flora = claims.P10701?.[0]?.mainsnak?.datavalue?.value;
+        const linksEl = card.querySelector(".links");
+        if (gbif) linksEl.insertAdjacentHTML("beforeend", ` <a href="https://www.gbif.org/species/${gbif}" target="_blank" rel="noopener">GBIF</a>`);
+        if (flora) linksEl.insertAdjacentHTML("beforeend", ` <a href="https://floradobrasil.jbrj.gov.br/${flora.startsWith("FB") ? flora : "FB" + flora}" target="_blank" rel="noopener">Flora do Brasil</a>`);
     }
 
     function render() {
@@ -354,9 +353,33 @@ async function init() {
             emptyEl.hidden = false;
         } else {
             emptyEl.hidden = true;
-            remaining.forEach((item) => cardsContainer.appendChild(createCard(item)));
+            remaining.forEach((item) => {
+                const card = createCard(item);              // Synchronous
+                cardsContainer.appendChild(card);           // Append immediately
+                hydrateExternalLinks(card, item.wikidata_xref); // Enrich links asynchronously
+            });
         }
     }
+    function render() {
+        const remaining = getFilteredData();
+        const counts = computeCounts(remaining);
+        updateCountSpans(counts);
+        renderActiveChips();
+        reorderFieldsets(counts);
+
+        cardsContainer.innerHTML = "";
+        if (!remaining.length) {
+            emptyEl.hidden = false;
+        } else {
+            emptyEl.hidden = true;
+            remaining.forEach((item) => {
+                const card = createCard(item);              // Synchronous
+                cardsContainer.appendChild(card);           // Append immediately
+                hydrateExternalLinks(card, item.wikidata_xref); // Enrich links asynchronously
+            });
+        }
+    }
+
 
     clearBtn.addEventListener("click", () => {
         document.querySelectorAll('#filters input[type=radio][value=""]').forEach((rb) => { rb.checked = true; });
@@ -390,7 +413,6 @@ async function init() {
         });
     });
 
-    await hydrateImagesFromWikidata(data);
     render();
 };
 
